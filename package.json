@@ -1,0 +1,37 @@
+{
+  "name": "opencode-ollama-key-failover",
+  "version": "0.1.0",
+  "description": "OpenCode plugin that moves Ollama Cloud requests to the next API key when one hits its usage limit. Works with OpenCode 1 and 2.",
+  "type": "module",
+  "exports": {
+    ".": "./index.js"
+  },
+  "main": "./index.js",
+  "files": [
+    "index.js",
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "ollama",
+    "ollama-cloud",
+    "failover",
+    "api-key"
+  ],
+  "license": "MIT",
+  "author": "Burak Arslan",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/burakarslan1/opencode-ollama-key-failover.git"
+  },
+  "bugs": {
+    "url": "https://github.com/burakarslan1/opencode-ollama-key-failover/issues"
+  },
+  "homepage": "https://github.com/burakarslan1/opencode-ollama-key-failover#readme",
+  "engines": {
+    "node": ">=22"
+  }
+}

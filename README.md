@@ -1,0 +1,141 @@
+# opencode-ollama-key-failover
+
+An [OpenCode](https://opencode.ai) plugin for people who have more than one Ollama Cloud API key.
+It keeps using one key until Ollama reports that the key has reached its limit, then moves the
+request to the next key without interrupting your session.
+
+It runs on both OpenCode 1 (1.18.29 or newer) and OpenCode 2 from the same package.
+
+## How it behaves
+
+| Ollama answers with | What the plugin does |
+| --- | --- |
+| `429` or `402` | Puts the key aside until `Retry-After` passes (or for `cooldownMinutes` when Ollama sends no hint), then retries the request with the next key. |
+| `401` or `403` | Treats the key as invalid and skips it until OpenCode restarts. |
+| anything else | Passes the response through untouched. |
+
+- The plugin stays on the same key while it works. It does not spread requests across keys.
+- When every key is set aside, the request goes out with the key that becomes available soonest,
+  so OpenCode shows Ollama's own error.
+- The keys file is checked before each request. When you add, remove or replace keys and save
+  the file, the next request uses the new list; no restart is needed. Keys that are still in the
+  list keep their state, and the plugin stays on the current key if it is still there.
+- If the keys file cannot be read for a moment (while an editor saves it, say), the plugin keeps
+  the keys it already has.
+- Keys from environment variables are read once, when OpenCode starts.
+- The plugin never writes keys to disk and logs them only by position (`key #2`).
+
+## Provide your keys
+
+Use one or both of these sources. Keys are de-duplicated and tried in the order listed.
+
+1. **A file**, one key per line, anywhere on disk. Lines starting with `#` are ignored, and both
+   Unix and Windows line endings work.
+
+   ```text
+   # ollama-keys.txt
+   first-key
+   second-key
+   ```
+
+   Set the path with the `keysFile` option. A leading `~/` or `~\` means your home directory.
+   The file may be empty or missing when OpenCode starts; the plugin picks the keys up once the
+   file has them.
+   Keep the file readable only by you: `chmod 600 <file>` on macOS and Linux; on Windows, keep it
+   inside your user profile, which other standard users cannot read.
+
+2. **An environment variable**, `OLLAMA_API_KEYS` by default, with keys separated by commas or
+   whitespace:
+
+   ```bash
+   export OLLAMA_API_KEYS="first-key,second-key"
+   ```
+
+   ```powershell
+   [Environment]::SetEnvironmentVariable("OLLAMA_API_KEYS", "first-key,second-key", "User")
+   ```
+
+   `OLLAMA_API_KEY`, if set, is added to the end of the list.
+
+   OpenCode 2 can run its server as a background service. A variable exported in your shell does
+   not reach a service that was started elsewhere, so prefer `keysFile` there, or restart the
+   service from a shell that has the variable (`opencode service restart`).
+
+## Install on OpenCode 2
+
+1. Connect Ollama Cloud once, with any one of your keys, so the provider is active: run
+   `/connect` and pick Ollama Cloud.
+2. Add the plugin:
+
+   ```bash
+   opencode plugin add github:burakarslan1/opencode-ollama-key-failover
+   ```
+
+3. To pass options, use the object form in your global `opencode.jsonc`. Run
+   `opencode debug paths` to see where your config directory is.
+
+   ```jsonc
+   {
+     "plugins": [
+       {
+         "package": "github:burakarslan1/opencode-ollama-key-failover",
+         "options": { "keysFile": "~/ollama-keys.txt" }
+       }
+     ]
+   }
+   ```
+
+   On Windows, write paths with forward slashes or doubled backslashes, for example
+   `"C:/Users/me/ollama-keys.txt"` or `"C:\\Users\\me\\ollama-keys.txt"`.
+
+## Install on OpenCode 1
+
+1. Clone the repository somewhere permanent:
+
+   ```bash
+   git clone https://github.com/burakarslan1/opencode-ollama-key-failover.git ~/.local/share/opencode-ollama-key-failover
+   ```
+
+   ```powershell
+   git clone https://github.com/burakarslan1/opencode-ollama-key-failover.git "$HOME\.local\share\opencode-ollama-key-failover"
+   ```
+
+2. Add the cloned folder to the `plugin` list in your global `opencode.json`
+   (`~/.config/opencode/opencode.json`). An entry is either a path or a `[path, options]` pair:
+
+   ```jsonc
+   {
+     "plugin": [
+       ["/Users/me/.local/share/opencode-ollama-key-failover", { "keysFile": "~/ollama-keys.txt" }]
+     ]
+   }
+   ```
+
+   Use the full path. On Windows, write it with forward slashes, for example
+   `"C:/Users/me/.local/share/opencode-ollama-key-failover"`.
+
+3. OpenCode 1 only hands requests to the plugin when Ollama Cloud has a saved login. If you have
+   never connected it, run `opencode auth login`, choose Ollama Cloud, and enter any value when
+   asked for a key. The plugin stores a placeholder instead of that value; the real keys still come
+   from your key sources.
+
+## Options
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `provider` | `ollama-cloud` | Provider ID whose requests the plugin handles. |
+| `keysFile` | none | Path to a file with one key per line. `~` is expanded. |
+| `keysEnv` | `OLLAMA_API_KEYS` | Environment variable that holds a list of keys. |
+| `cooldownMinutes` | `30` | How long a limited key is set aside when Ollama gives no `Retry-After`. |
+
+## Limitations
+
+- OpenCode 2 marks its HTTP hooks as experimental, so a future OpenCode 2 release may change them.
+- On OpenCode 1, a request whose body is a stream cannot be sent twice. It fails over on the next
+  request instead.
+- The plugin keeps its state in memory. After a restart it starts again from the first key, and
+  keys that were set aside are tried again.
+
+## License
+
+[MIT](LICENSE)
