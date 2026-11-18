@@ -71,6 +71,10 @@ Use one or both of these sources. Keys are de-duplicated and tried in the order 
    opencode plugin add github:burakarslan1/opencode-ollama-key-failover
    ```
 
+   `opencode plugin add` keeps your other settings and plugins, but it rewrites the `plugins`
+   array in its own format and drops comments inside that array. If you keep comments there,
+   add the entry by hand as shown in the next step instead of running the command.
+
 3. To pass options, use the object form in your global `opencode.jsonc`. Run
    `opencode debug paths` to see where your config directory is.
 
@@ -114,10 +118,50 @@ Use one or both of these sources. Keys are de-duplicated and tried in the order 
    Use the full path. On Windows, write it with forward slashes, for example
    `"C:/Users/me/.local/share/opencode-ollama-key-failover"`.
 
-3. OpenCode 1 only hands requests to the plugin when Ollama Cloud has a saved login. If you have
-   never connected it, run `opencode auth login`, choose Ollama Cloud, and enter any value when
-   asked for a key. The plugin stores a placeholder instead of that value; the real keys still come
-   from your key sources.
+3. OpenCode 1 only hands requests to the plugin when Ollama Cloud has a saved login. Check with
+   `opencode auth list`. If Ollama Cloud is already listed, skip this step.
+
+   If it is not listed, run `opencode auth login`, choose Ollama Cloud, and enter any value when
+   asked for a key. While the plugin is installed, this login stores a placeholder instead of the
+   value you type; the real keys still come from your key sources.
+
+   > **Warning:** Do not run this login if Ollama Cloud already has a saved key. The placeholder
+   > replaces that key, and Ollama Cloud stops working without the plugin until you log in again.
+   > See [Uninstall](#uninstall).
+
+## Uninstall
+
+The plugin writes no files of its own, so removing it leaves nothing behind except what
+OpenCode itself stored.
+
+**OpenCode 2**
+
+1. Remove the plugin:
+
+   ```bash
+   opencode plugin remove github:burakarslan1/opencode-ollama-key-failover
+   ```
+
+   If you added the entry by hand, delete it from `plugins` instead. The command leaves an empty
+   `"plugins": []` behind when it was the only entry.
+2. OpenCode keeps a cached copy of the plugin under its cache directory, in `npm/` (see
+   `opencode debug paths`). You can delete the `git-opencode-ollama-key-failover-*` folder there.
+3. Your saved Ollama Cloud login is untouched, so Ollama Cloud keeps working with that key.
+
+**OpenCode 1**
+
+1. Delete the plugin entry from the `plugin` list in your `opencode.json`.
+2. Delete the cloned folder, for example `~/.local/share/opencode-ollama-key-failover`.
+3. If you ran `opencode auth login` for this plugin, Ollama Cloud still has the placeholder.
+   Replace it with a real key:
+
+   ```bash
+   opencode auth logout ollama-cloud
+   opencode auth login
+   ```
+
+   Choose Ollama Cloud and paste a real key. Without the plugin installed, this is the normal
+   OpenCode login again.
 
 ## Options
 
