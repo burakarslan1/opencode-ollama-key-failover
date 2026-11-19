@@ -1,6 +1,6 @@
 {
   "name": "opencode-ollama-key-failover",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "OpenCode plugin that moves Ollama Cloud requests to the next API key when one hits its usage limit. Works with OpenCode 1 and 2.",
   "type": "module",
   "exports": {
