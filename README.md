@@ -129,6 +129,33 @@ Use one or both of these sources. Keys are de-duplicated and tried in the order 
    > replaces that key, and Ollama Cloud stops working without the plugin until you log in again.
    > See [Uninstall](#uninstall).
 
+## Update
+
+Your config and keys file stay as they are; only the plugin code changes.
+
+**OpenCode 2**
+
+1. Update the plugin, either from the `/plugins` screen or with:
+
+   ```bash
+   opencode plugin update
+   ```
+
+2. Restart OpenCode, or run `opencode reload`.
+
+If you pinned the plugin to a tag, for example `github:burakarslan1/opencode-ollama-key-failover#v0.1.0`,
+the update keeps that tag. Change the tag in your config to the version you want.
+
+**OpenCode 1**
+
+1. Pull the latest code into your clone:
+
+   ```bash
+   git -C ~/.local/share/opencode-ollama-key-failover pull
+   ```
+
+2. Restart OpenCode.
+
 ## Uninstall
 
 The plugin writes no files of its own, so removing it leaves nothing behind except what
