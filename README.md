@@ -171,6 +171,7 @@ OpenCode itself stored.
 | `keysFile` | none | Path to a file with one key per line. `~` is expanded. |
 | `keysEnv` | `OLLAMA_API_KEYS` | Environment variable that holds a list of keys. |
 | `cooldownMinutes` | `30` | How long a limited key is set aside when Ollama gives no `Retry-After`. |
+| `providerLabel` | `Ollama Cloud (pool)` | Name OpenCode shows for the provider while the plugin is active, so you can see at a glance that it is loaded. Set to `false` to keep the original name. |
 
 ## Limitations
 
